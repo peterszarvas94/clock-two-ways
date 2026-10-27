@@ -25,7 +25,11 @@ type clock struct {
 
 func clockAt(now time.Time, zone *time.Location) clock {
 	now = now.In(zone)
-	return clock{now.UnixMilli(), now.Hour() % 12, now.Minute(), now.Second(), now.Format("15:04:05"), now.Format("Mon, 02 Jan 2006"), zone.String()}
+	return clock{
+		Epoch: now.UnixMilli(),
+		Hour:  now.Hour() % 12, Minute: now.Minute(), Second: now.Second(),
+		Digital: now.Format("15:04:05"), Date: now.Format("Mon, 02 Jan 2006"), Zone: zone.String(),
+	}
 }
 
 func location(w http.ResponseWriter, r *http.Request) (*time.Location, bool) {
