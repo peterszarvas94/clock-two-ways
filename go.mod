@@ -1,4 +1,4 @@
-module datastar-clock
+module clock-two-ways
 
 go 1.24
 
