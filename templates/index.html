@@ -1,0 +1,42 @@
+{{define "page"}}<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <script>
+  // The browser supplies its timezone in the page request, without cookies.
+  const url = new URL(location.href);
+  if (!url.searchParams.has('tz')) {
+   url.searchParams.set('tz', Intl.DateTimeFormat().resolvedOptions().timeZone);
+   location.replace(url);
+  }
+ </script>
+ <title>Clock · {{if .Stream}}Server SSE{{else}}Client ticking{{end}}</title>
+ <link rel="stylesheet" href="/static/style.css">
+ {{if .Stream}}<script type="module" src="/static/datastar.js"></script>{{else}}<script type="module" src="/static/clock.js"></script>{{end}}
+</head>
+<body>
+ <main>
+  <h1>Clock, two ways</h1>
+  <nav aria-label="Clock examples"><a href="/client?tz={{.Clock.Zone}}" {{if not .Stream}}aria-current="page"{{end}}>Client ticking</a><a href="/stream?tz={{.Clock.Zone}}" {{if .Stream}}aria-current="page"{{end}}>Server SSE</a></nav>
+  <p class="description">{{if .Stream}}The server sends clock HTML every second over one open SSE connection.{{else}}The server renders the first clock. Vanilla JS updates its CSS variables every second.{{end}}</p>
+  <section {{if .Stream}}data-init="@get('/events?tz=' + encodeURIComponent('{{.Clock.Zone}}'), {openWhenHidden: true})"{{end}}>
+   {{template "face" .Clock}}
+  </section>
+  <noscript>This is the server-rendered clock. Enable JavaScript for live updates.</noscript>
+  <footer>Inspiration: <a href="https://ethanniser.com/blog/a-clock-that-doesnt-snap/">A Clock That Doesn't Snap — Ethan Niser</a></footer>
+ </main>
+</body>
+</html>{{end}}
+
+{{define "face"}}<figure id="face" data-epoch="{{.Epoch}}" data-zone="{{.Zone}}" style="--hour:{{.Hour}};--minute:{{.Minute}};--second:{{.Second}}">
+ <svg viewBox="0 0 200 200" role="img" aria-label="Analog clock">
+  <circle cx="100" cy="100" r="93" fill="white" stroke="currentColor" stroke-width="1.5"/>
+  <g class="numbers" text-anchor="middle" dominant-baseline="central"><text x="100" y="24">12</text><text x="177" y="100">3</text><text x="100" y="177">6</text><text x="23" y="100">9</text></g>
+  <line class="hand hour" x1="100" y1="107" x2="100" y2="53"/>
+  <line class="hand minute" x1="100" y1="110" x2="100" y2="32"/>
+  <line class="hand second" x1="100" y1="117" x2="100" y2="22"/>
+  <circle cx="100" cy="100" r="3" fill="currentColor"/>
+ </svg>
+ <figcaption><time id="digital">{{.Digital}}</time><span id="date">{{.Date}}</span><small>{{.Zone}}</small></figcaption>
+</figure>{{end}}
